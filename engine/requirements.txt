@@ -1,0 +1,5 @@
+pykrx==1.2.8
+finance-datareader==0.9.202
+requests
+fastapi
+uvicorn

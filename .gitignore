@@ -1,0 +1,53 @@
+# ===== 환경 변수 (절대 커밋 금지) =====
+.env
+.env.local
+.env.*.local
+.env.production
+
+# ===== 프론트엔드 (Node) =====
+node_modules/
+dist/
+dist-ssr/
+*.local
+
+# 로그
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# ===== Python 엔진 =====
+engine/__pycache__/
+engine/*.pyc
+engine/*.pyo
+engine/.venv/
+engine/venv/
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+
+# ===== 에디터 =====
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# ===== OS =====
+.DS_Store
+Thumbs.db
+
+# ===== 테스트 / 커버리지 =====
+coverage/
+.nyc_output/
+
+# ===== 빌드 캐시 =====
+.cache/
+.turbo/
