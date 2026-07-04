@@ -116,6 +116,10 @@ MVP에서 사용하는 지표 6종:
 
 ## 참고 문서
 
-- 제품 요구사항 전체 스펙은 @StockPudding_PRD.md 참고
-- 진행 상황·데이터 소스·엔진 구조는 @PROGRESS.md 참고
+문서는 `docs/` 폴더에 모아 관리합니다 (CLAUDE.md·README.md만 루트 유지).
+
+- 제품 요구사항 전체 스펙은 @docs/StockPudding_PRD.md 참고
+- 기능 단위 스펙·구현 상태는 @docs/FeatureSpec.md 참고
+- UI 디자인 가이드는 @docs/DesignSystem.md 참고
+- 진행 상황·데이터 소스·엔진 구조는 @docs/PROGRESS.md 참고
 - 사용 가능한 스크립트는 @package.json 참고 (프론트 셋업 후 생성됨)
