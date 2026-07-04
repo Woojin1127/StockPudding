@@ -7,7 +7,7 @@
 - [x] **1. 데이터 PoC** ← 완료. 6개 지표 원천 전부 확보 확인 (아래 데이터 소스 표 참고)
 - [x] **2. 지표 엔진** ← 완료. 6개 지표 계산→점수화→신호등→규칙기반 진단, 3종목 검증
 - [x] **3. engine API** ← 완료. FastAPI `/search`, `/analyze/{code}`, `/health` 동작 확인
-- [ ] **4. web 기반** ← 다음: React+Vite 셋업 + Supabase(reports/votes/cache) + 엔진 연동
+- [ ] **4. web 기반** ← 진행중. Tailwind 연결 + 랜딩 페이지 완료, 다음은 Supabase(reports/votes/cache) + 엔진 연동
 - [ ] 5. web P0 화면 (검색 → 결과 → 투표)
 - [ ] 6. P1 (랭킹, 인기 검색어)
 
@@ -62,6 +62,22 @@
 - 검증 결과: 삼성 68🟢 / 카카오 54🟡 / SK하이닉스 68🟢 (종목별로 잘 구분됨)
 - 매매 권유 문구 없음(PRD 준수). 진단 끝에 "투자 판단은 직접 하세요" 고정.
 
+## 프론트엔드 (4번, 진행중)
+
+- 랜딩 페이지 완료: Tailwind v4 연결, 검색바 + 특징 3종 + 예시 분석 카드 + 푸터
+- 아직: Supabase 연동, 실제 검색→분석 결과 페이지, 캐싱/투표 (P0 6.1~6.4 나머지)
+
+| 파일 | 역할 |
+|------|------|
+| `vite.config.ts` | `@tailwindcss/vite` 플러그인 + `@/` 경로 alias |
+| `src/App.tsx` | React Router 루트 — `/` → `LandingPage` |
+| `src/pages/LandingPage.tsx` | 랜딩 페이지 (히어로+검색바+특징+예시카드+푸터) |
+| `src/components/SearchBar.tsx` | 검색바 (DesignSystem.md §5.1 스펙) |
+| `src/index.css` | Tailwind 진입점 + Pretendard `@theme` 폰트 등록 |
+
+- 검증: `pnpm lint`/`pnpm build` 통과, Playwright(시스템 Chrome)로 모바일/데스크탑/검색 제출 상태 스크린샷 확인, 콘솔 에러 없음
+- 검색 제출 시 아직 분석 페이지가 없어 "준비 중이에요" 플레이스홀더만 표시 (엔진 연동 전 임시)
+
 ## 나중에 개선할 점 (MVP 후 숙제)
 
 - 종목목록 캐시(`get_listing`)가 서버 재시작 전까지 갱신 안 됨 → 하루 1회 TTL 재로드 필요
@@ -69,6 +85,8 @@
 - 분석 결과 캐싱 미구현 → 4번 web에서 SQLite로 (PRD 6.4)
 - `requests` 동기 호출이 async FastAPI 안에서 블로킹 → 트래픽 늘면 httpx 비동기로
 - 테스트 코드 없음 (indicators는 순수함수라 붙이기 쉬움)
+- Pretendard를 CDN(jsdelivr)으로 불러오는 중 → 배포 전 로컬 번들/자체 호스팅 전환 검토
+- SearchBar 제출이 실제 라우팅으로 안 이어짐 → `/analyze/:code` 페이지 생기면 연결
 
 ## 참고: 종목 수
 
@@ -90,6 +108,13 @@
   - engine 파이썬 파일 7종(data/indicators/scoring/analyze/main/poc/poc_naver)은 이 대화 컨텍스트에서 최종본으로 재작성 복원
   - 복원 검증: `analyze.py 005930` 정상(삼성 64🟡, 6카드), `main.py` 임포트 OK, 검색('삼','035') 정상
   - **교훈: 스캐폴딩 시 `--overwrite`/빈 디렉터리 요구 도구는 빈 폴더에서 실행할 것**
+- 4번 web 기반 착수: DesignSystem.md 기준 랜딩 페이지 구현
+  - Tailwind v4는 devDependency로만 있고 `vite.config.ts`에 미연결 상태 → `@tailwindcss/vite` 플러그인 추가, `@/` 경로 alias 설정(`vite.config.ts` + `tsconfig.app.json`)
+  - Pretendard 폰트 CDN 연결(`index.html`), Vite 스캐폴드 잔재 제거(`App.css`, react/vite 로고, `icons.svg`)
+  - React Router 뼈대: `App.tsx` → `/` 라우트에 `LandingPage`
+  - `SearchBar`(§5.1), `LandingPage`(히어로+검색바+특징3종+예시 분석 카드+푸터) 작성 — 신호등 색상·타이포 스케일 DesignSystem.md 그대로 반영
+  - 검증: lint/build 통과, Playwright(시스템 Chrome)로 모바일/데스크탑/검색 제출 스크린샷 확인, 콘솔 에러 없음
+  - **다음은 Supabase 연동 + 실제 검색→분석 결과 페이지(P0 6.1~6.4)**
 
 ### 2026-06-24
 - PRD 분석 → 아키텍처/작업순서 설계 확정
