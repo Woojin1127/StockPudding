@@ -18,7 +18,10 @@ interface SearchBarProps {
   autoFocus?: boolean
 }
 
-export function SearchBar({ variant = 'hero', autoFocus = false }: SearchBarProps) {
+export function SearchBar({
+  variant = 'hero',
+  autoFocus = false,
+}: SearchBarProps) {
   const navigate = useNavigate()
   const inputId = useId()
   const containerRef = useRef<HTMLDivElement>(null)
@@ -115,7 +118,9 @@ export function SearchBar({ variant = 'hero', autoFocus = false }: SearchBarProp
             onFocus={() => setOpen(true)}
             onKeyDown={handleKeyDown}
             placeholder={
-              isHero ? '종목명 또는 코드 입력 (예: 삼성전자, 005930)' : '종목 검색'
+              isHero
+                ? '종목명 또는 코드 입력 (예: 삼성전자, 005930)'
+                : '종목 검색'
             }
             className={`w-full rounded-xl border border-gray-200 bg-white pr-4 pl-11 text-gray-900 shadow-sm placeholder:text-gray-400 focus:ring-2 focus:ring-indigo-500 focus:outline-none ${
               isHero ? 'py-3.5 text-base' : 'py-2.5 text-sm'
@@ -129,8 +134,20 @@ export function SearchBar({ variant = 'hero', autoFocus = false }: SearchBarProp
           }`}
         >
           {isFetching ? (
-            <svg className="h-5 w-5 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+            <svg
+              className="h-5 w-5 animate-spin"
+              viewBox="0 0 24 24"
+              fill="none"
+              aria-hidden="true"
+            >
+              <circle
+                className="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeWidth="4"
+              />
               <path
                 className="opacity-75"
                 fill="currentColor"
@@ -150,7 +167,11 @@ export function SearchBar({ variant = 'hero', autoFocus = false }: SearchBarProp
           className="absolute top-full right-0 left-0 z-20 mt-2 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-lg"
         >
           {items.map((stock, index) => (
-            <li key={stock.code} role="option" aria-selected={index === highlighted}>
+            <li
+              key={stock.code}
+              role="option"
+              aria-selected={index === highlighted}
+            >
               <button
                 type="button"
                 onPointerDown={(event) => event.preventDefault()}

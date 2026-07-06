@@ -13,7 +13,9 @@ interface SearchResponse {
   results: StockSearchResult[]
 }
 
-export async function searchStocks(query: string): Promise<StockSearchResult[]> {
+export async function searchStocks(
+  query: string,
+): Promise<StockSearchResult[]> {
   const { data } = await engineClient.get<SearchResponse>('/search', {
     params: { q: query },
   })

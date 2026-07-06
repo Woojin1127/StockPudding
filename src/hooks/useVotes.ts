@@ -30,14 +30,16 @@ export function useVotes(reportId: string | null, fallbackKey: string) {
       queryClient.setQueryData<VoteState>(queryKey, (old) => {
         const base = old ?? { counts: { up: 0, down: 0 }, myVote: null }
         const counts = { ...base.counts }
-        if (base.myVote) counts[base.myVote] = Math.max(0, counts[base.myVote] - 1)
+        if (base.myVote)
+          counts[base.myVote] = Math.max(0, counts[base.myVote] - 1)
         if (choice) counts[choice] += 1
         return { counts, myVote: choice }
       })
       return { previous }
     },
     onError: (_err, _choice, context) => {
-      if (context?.previous) queryClient.setQueryData(queryKey, context.previous)
+      if (context?.previous)
+        queryClient.setQueryData(queryKey, context.previous)
     },
     onSettled: () => {
       void queryClient.invalidateQueries({ queryKey })

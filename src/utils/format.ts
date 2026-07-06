@@ -23,7 +23,10 @@ export function formatMarket(market: string): string {
 }
 
 /** 상대 시각 — 캐시 안내용 ('3분 전 분석') */
-export function formatRelativeTime(iso: string, now: Date = new Date()): string {
+export function formatRelativeTime(
+  iso: string,
+  now: Date = new Date(),
+): string {
   const diffMs = now.getTime() - new Date(iso).getTime()
   const minutes = Math.floor(diffMs / 60_000)
   if (minutes < 1) return '방금 전'

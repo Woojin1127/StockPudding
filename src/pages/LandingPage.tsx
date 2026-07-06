@@ -83,8 +83,8 @@ export default function LandingPage() {
             </span>
           </h1>
           <p className="animate-fade-up max-w-md text-sm text-gray-500 sm:text-base">
-            어려운 지표 6가지를 계산해서 점수 하나, 신호등 하나로 떠먹여
-            드려요. 판단은 당신이, 근거는 저희가.
+            어려운 지표 6가지를 계산해서 점수 하나, 신호등 하나로 떠먹여 드려요.
+            판단은 당신이, 근거는 저희가.
           </p>
 
           <div className="animate-fade-up relative z-20 w-full max-w-md">
