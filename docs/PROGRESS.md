@@ -7,9 +7,10 @@
 - [x] **1. 데이터 PoC** ← 완료. 6개 지표 원천 전부 확보 확인 (아래 데이터 소스 표 참고)
 - [x] **2. 지표 엔진** ← 완료. 6개 지표 계산→점수화→신호등→규칙기반 진단, 3종목 검증
 - [x] **3. engine API** ← 완료. FastAPI `/search`, `/analyze/{code}`, `/health` 동작 확인
-- [ ] **4. web 기반** ← 진행중. Tailwind 연결 + 랜딩 페이지 완료, 다음은 Supabase(reports/votes/cache) + 엔진 연동
-- [ ] 5. web P0 화면 (검색 → 결과 → 투표)
-- [ ] 6. P1 (랭킹, 인기 검색어)
+- [x] **4. web 기반** ← 완료. Tailwind + 랜딩 + 라우팅/쿼리/스토어 뼈대
+- [x] **5. web P0 화면** ← 완료 (2026-07-06). 검색 자동완성 → `/stock/:code` 분석 화면 → 투표. Supabase 코드·스키마 완료, **실 프로젝트 생성 + .env 키 입력만 남음** (docs/SupabaseSetup.md)
+- [ ] 6. P1 (F7 랭킹, F8 오늘 많이 본 종목 — F9 최근 검색은 완료)
+- [ ] 7. 배포 (프론트 Vercel/Netlify + 엔진 호스팅 + Supabase 프로젝트 생성)
 
 ## 확정된 결정
 
@@ -62,31 +63,34 @@
 - 검증 결과: 삼성 68🟢 / 카카오 54🟡 / SK하이닉스 68🟢 (종목별로 잘 구분됨)
 - 매매 권유 문구 없음(PRD 준수). 진단 끝에 "투자 판단은 직접 하세요" 고정.
 
-## 프론트엔드 (4번, 진행중)
+## 프론트엔드 구조 (5번까지 반영, 2026-07-06)
 
-- 랜딩 페이지 완료: Tailwind v4 연결, 검색바 + 특징 3종 + 예시 분석 카드 + 푸터
-- 아직: Supabase 연동, 실제 검색→분석 결과 페이지, 캐싱/투표 (P0 6.1~6.4 나머지)
+```
+src/
+├── api/         engine.ts(axios) · supabaseClient.ts(env 없으면 null) · reports.ts(캐시→엔진→저장) · votes.ts
+├── components/  Layout · SearchBar(자동완성) · ScoreCard · ScoreGauge · SignalBadge
+│                IndicatorCard · SignalSummary · VoteButtons · AnalysisView · AnalysisSkeleton · ErrorState
+├── hooks/       useStockSearch · useReport · useVotes · useDebouncedValue
+├── pages/       LandingPage · StockPage(/stock/:code) · ReportPage(/report/:id) · NotFoundPage
+├── store/       recentStocks.ts (zustand persist, 최근 본 종목 8개)
+├── types/       stock.ts (엔진 응답·리포트·투표 타입)
+└── utils/       format.ts · signal.ts(신호등→클래스 매핑) · device.ts(투표용 기기 ID)
+```
 
-| 파일 | 역할 |
-|------|------|
-| `vite.config.ts` | `@tailwindcss/vite` 플러그인 + `@/` 경로 alias |
-| `src/App.tsx` | React Router 루트 — `/` → `LandingPage` |
-| `src/pages/LandingPage.tsx` | 랜딩 페이지 (히어로+검색바+특징+예시카드+푸터) |
-| `src/components/SearchBar.tsx` | 검색바 (DesignSystem.md §5.1 스펙) |
-| `src/index.css` | Tailwind 진입점 + Pretendard `@theme` 폰트 등록 |
-
-- 검증: `pnpm lint`/`pnpm build` 통과, Playwright(시스템 Chrome)로 모바일/데스크탑/검색 제출 상태 스크린샷 확인, 콘솔 에러 없음
-- 검색 제출 시 아직 분석 페이지가 없어 "준비 중이에요" 플레이스홀더만 표시 (엔진 연동 전 임시)
+- 라우팅: `/` 랜딩 → 검색/칩 → `/stock/:code` 분석 → 투표. `/report/:id`는 저장본 공유용
+- 데이터 흐름: React Query 캐시(5분) → Supabase `reports` 캐시(30분 TTL) → 엔진 `/analyze`
+- Supabase 미설정 시 폴백: 엔진 직접 호출(reportId=null) + 투표 localStorage — 로컬 개발은 엔진만 있으면 됨
+- 검증: `pnpm build`(tsc+vite)·`pnpm lint`·`pnpm test`(10개) 통과, Claude Preview로 랜딩/자동완성/분석(카카오 59🟡 실데이터)/투표 토글/모바일 뷰 확인, 콘솔 에러 없음
 
 ## 나중에 개선할 점 (MVP 후 숙제)
 
 - 종목목록 캐시(`get_listing`)가 서버 재시작 전까지 갱신 안 됨 → 하루 1회 TTL 재로드 필요
 - RSI가 단순평균(SMA) 방식 → 정석 Wilder 지수평활로 바꿀지 검토
-- 분석 결과 캐싱 미구현 → 4번 web에서 SQLite로 (PRD 6.4)
 - `requests` 동기 호출이 async FastAPI 안에서 블로킹 → 트래픽 늘면 httpx 비동기로
-- 테스트 코드 없음 (indicators는 순수함수라 붙이기 쉬움)
+- engine 테스트 코드 없음 (indicators는 순수함수라 붙이기 쉬움) — 프론트 utils는 Vitest 10개 있음
 - Pretendard를 CDN(jsdelivr)으로 불러오는 중 → 배포 전 로컬 번들/자체 호스팅 전환 검토
-- SearchBar 제출이 실제 라우팅으로 안 이어짐 → `/analyze/:code` 페이지 생기면 연결
+- 투표 수치는 votes 전체 행을 읽어 세는 방식 → 트래픽 늘면 집계 뷰/RPC로 전환
+- Supabase RLS가 anon 전면 허용(로그인 없는 MVP 한계) → P2 로그인 도입 시 auth.uid() 기반으로 강화
 
 ## 참고: 종목 수
 
@@ -101,6 +105,25 @@
 ---
 
 ## 로그
+
+### 2026-07-06 — web P0 완성 (검색→분석→투표 E2E)
+
+작업 브랜치: `feat/web-v1`
+
+**무엇을**: P0 프론트 전체(F1 검색 연동, F3 분석 화면, F4~F6 Supabase 저장·투표·캐싱 코드/스키마) + 랜딩 v2 리디자인 + F9 최근 검색.
+
+**왜/어떻게** (핵심 결정):
+- **Supabase 폴백 설계**: 아직 Supabase 프로젝트가 없어도 개발·시연이 가능해야 함 → `supabaseClient`가 env 없으면 null, 리포트는 엔진 직접 호출(reportId=null), 투표는 localStorage 폴백. 실제 연결은 `docs/SupabaseSetup.md` 5분 셋업 + `supabase/schema.sql` 1회 실행이면 끝 (코드 수정 불필요)
+- **캐싱을 프론트 주도로**(CLAUDE.md 구조 준수): `fetchReport()`가 reports 테이블에서 30분 내 리포트 조회 → miss면 엔진 → insert. 저장 실패해도 결과 표시는 유지
+- **투표 무결성**: votes PK `(report_id, device_id)`로 기기당 1표를 DB 레벨에서 보장. 취소=delete, 반대표=upsert. React Query 낙관적 업데이트 + 실패 롤백
+- **점수 게이지를 바(§5.2)에서 반원 SVG로 변경**: 신호등 색 + 차오르는 애니메이션이 "5초 이해" 목표에 더 부합 (DesignSystem §5.2에 반영)
+- **검색 UX**: 250ms 디바운스 자동완성(정확 일치 최상단은 엔진이 처리), 키보드 탐색, 6자리 코드는 검색 없이 바로 이동. 분석 페이지 헤더에도 compact 검색바 → 연속 검색 동선
+- **tsconfig에 `strict: true` 추가**: CLAUDE.md는 strict 요구였는데 스캐폴드에 빠져 있었음. 전체 코드 strict 통과
+- 사소한 버그 수정: 랜딩 fade-up 애니메이션이 stacking context를 만들어 검색 드롭다운이 인기 종목 칩 뒤로 깔림 → 검색바 래퍼에 `relative z-20`
+
+**검증**: build/lint/test 통과 · Claude Preview로 랜딩(데스크탑/모바일)·자동완성(카카오)·분석 페이지(035720 실데이터, 59점 🟡 6카드)·투표 토글/취소·최근 본 종목 칩 확인, 콘솔 에러 0
+**문서**: FeatureSpec 상태 갱신, README 실제 프로젝트 소개로 교체, SupabaseSetup.md 신규, .env.example 추가
+**남은 것**: Supabase 실 프로젝트 생성(5분 셋업) → F4~F6 실연동 확인 → P1(F7/F8) → 배포
 
 ### 2026-07-04
 - 사고: 다른 세션에서 `create-vite --overwrite` 실행 → 프로젝트 폴더가 비워지며 engine/* 등 삭제됨

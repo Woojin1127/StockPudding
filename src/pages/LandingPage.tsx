@@ -1,193 +1,179 @@
-import { useState } from 'react'
+import { Link } from 'react-router-dom'
+
 import { SearchBar } from '@/components/SearchBar'
+import { useRecentStocks } from '@/store/recentStocks'
 
-type IndicatorTone = 'green' | 'yellow' | 'red'
+const POPULAR_STOCKS = [
+  { code: '005930', name: '삼성전자' },
+  { code: '000660', name: 'SK하이닉스' },
+  { code: '035420', name: 'NAVER' },
+  { code: '035720', name: '카카오' },
+  { code: '005380', name: '현대차' },
+  { code: '068270', name: '셀트리온' },
+]
 
-const toneStyles: Record<
-  IndicatorTone,
-  { border: string; dot: string; text: string }
-> = {
-  green: {
-    border: 'border-l-emerald-400',
-    dot: 'bg-emerald-400',
-    text: 'text-emerald-700',
+const STEPS = [
+  {
+    step: '1',
+    title: '종목을 검색해요',
+    desc: '이름이든 코드든 괜찮아요. 코스피·코스닥 전 종목을 찾아드려요.',
   },
-  yellow: {
-    border: 'border-l-amber-400',
-    dot: 'bg-amber-400',
-    text: 'text-amber-700',
+  {
+    step: '2',
+    title: '신호등을 확인해요',
+    desc: '6가지 지표를 0~100점으로 모아 🟢🟡🔴 하나로 보여드려요.',
   },
-  red: { border: 'border-l-red-400', dot: 'bg-red-400', text: 'text-red-700' },
-}
+  {
+    step: '3',
+    title: '판단은 직접 해요',
+    desc: '저희는 사세요·파세요를 말하지 않아요. 근거만 쉽게 풀어드려요.',
+  },
+]
 
-function FeatureItem({
-  emoji,
-  title,
-  desc,
-}: {
-  emoji: string
-  title: string
-  desc: string
-}) {
-  return (
-    <div className="rounded-xl bg-white p-4 text-center shadow-sm">
-      <div className="text-2xl">{emoji}</div>
-      <h2 className="mt-2 text-base font-semibold text-gray-900">{title}</h2>
-      <p className="mt-1 text-sm leading-relaxed text-gray-500">{desc}</p>
-    </div>
-  )
-}
+const FEATURES = [
+  {
+    emoji: '🔍',
+    title: '용어 몰라도 OK',
+    desc: 'RSI, PBR이 뭔지 몰라도 괜찮아요. 모든 지표 옆에 쉬운 말 해설이 붙어요.',
+  },
+  {
+    emoji: '⚖️',
+    title: '지표만, 감정 없이',
+    desc: '뉴스도 소문도 AI 상상도 없어요. 오직 객관적 지표 6종, 규칙 기반 해석.',
+  },
+  {
+    emoji: '🍮',
+    title: '떠먹여 드려요',
+    desc: '종합 점수 하나, 신호등 하나, 한줄 진단 하나. 5초면 상태 파악 끝.',
+  },
+]
 
-function IndicatorPreview({
-  label,
-  value,
-  desc,
-  tone,
-}: {
-  label: string
-  value: string
-  desc: string
-  tone: IndicatorTone
-}) {
-  const styles = toneStyles[tone]
+function StockChip({ code, name }: { code: string; name: string }) {
   return (
-    <div
-      className={`rounded-xl border border-l-4 border-gray-200 bg-white p-4 shadow-sm ${styles.border}`}
+    <Link
+      to={`/stock/${code}`}
+      className="rounded-full border border-gray-200 bg-white px-3.5 py-1.5 text-sm text-gray-700 shadow-sm transition hover:border-indigo-300 hover:text-indigo-600"
     >
-      <div className="flex items-center justify-between">
-        <span className="flex items-center gap-1.5 text-xs tracking-wide text-gray-500 uppercase">
-          <span className={`h-2 w-2 rounded-full ${styles.dot}`} />
-          {label}
-        </span>
-        <span className={`text-xl font-bold tabular-nums ${styles.text}`}>
-          {value}
-        </span>
-      </div>
-      <p className="mt-2 text-sm leading-relaxed text-gray-600">{desc}</p>
-    </div>
+      {name}
+    </Link>
   )
 }
 
 export default function LandingPage() {
-  const [submittedQuery, setSubmittedQuery] = useState<string | null>(null)
-
-  const handleSearch = (query: string) => {
-    setSubmittedQuery(query)
-  }
+  const recent = useRecentStocks((s) => s.recent)
+  const clearRecent = useRecentStocks((s) => s.clearRecent)
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="flex items-center justify-center py-6">
-        <span className="text-xl font-semibold text-gray-900">
-          🍮 <span className="text-indigo-600">스톡</span>푸딩
-        </span>
-      </header>
-
-      <section className="flex flex-col items-center gap-6 px-4 pt-8 pb-12 text-center">
-        <span className="rounded-full bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-600">
-          주린이를 위한 종목 분석
-        </span>
-        <h1 className="max-w-lg text-3xl leading-snug font-bold text-gray-900 sm:text-4xl">
-          이 종목, 지금 어떤 상태일까요?
-        </h1>
-        <p className="max-w-md text-sm text-gray-500 sm:text-base">
-          어려운 지표는 저희가 풀어드릴게요.
-          <br />
-          종목명이나 코드만 입력하면 5초 안에 딱 보여드려요.
-        </p>
-
-        <div className="w-full max-w-md">
-          <SearchBar onSearch={handleSearch} />
-        </div>
-
-        {submittedQuery && (
-          <p className="text-sm text-gray-400">
-            &ldquo;{submittedQuery}&rdquo; 분석 페이지는 아직 준비 중이에요.
-            조금만 기다려주세요 🍮
-          </p>
-        )}
-      </section>
-
-      <section className="bg-gray-100 px-4 py-12">
-        <div className="mx-auto grid max-w-2xl grid-cols-1 gap-4 sm:grid-cols-3">
-          <FeatureItem
-            emoji="🔍"
-            title="쉬운 해석"
-            desc="RSI, PBR 같은 용어 몰라도 괜찮아요. 쉬운 말로 바로 알려드려요."
-          />
-          <FeatureItem
-            emoji="⚖️"
-            title="객관적 지표"
-            desc="감정이나 뉴스 없이 6가지 핵심 지표로만 판단해요."
-          />
-          <FeatureItem
-            emoji="🚫"
-            title="매매 권유 없음"
-            desc="사세요, 파세요는 없어요. 신호만 보여드리고 판단은 직접."
-          />
-        </div>
-      </section>
-
-      <section className="px-4 py-12">
-        <div className="mx-auto max-w-2xl">
-          <h2 className="text-center text-lg font-semibold text-gray-900">
-            이렇게 보여드려요
-          </h2>
-          <p className="mt-1 text-center text-sm text-gray-500">
-            예시: 삼성전자 (005930)
+    <div>
+      {/* 히어로 */}
+      <section className="relative overflow-hidden">
+        <div
+          className="pointer-events-none absolute inset-0 bg-[radial-gradient(60%_50%_at_50%_0%,theme(colors.indigo.100),transparent)]"
+          aria-hidden="true"
+        />
+        <div className="relative mx-auto flex max-w-2xl flex-col items-center gap-6 px-4 pt-14 pb-12 text-center">
+          <span className="animate-fade-up rounded-full border border-indigo-200 bg-white/70 px-3 py-1 text-xs font-semibold text-indigo-600">
+            주린이를 위한 종목 분석
+          </span>
+          <h1 className="animate-fade-up max-w-lg text-3xl leading-snug font-bold text-gray-900 sm:text-4xl">
+            이 종목, 지금 어떤 상태일까요?
+            <br />
+            <span className="bg-gradient-to-r from-indigo-500 to-violet-500 bg-clip-text text-transparent">
+              5초면 알 수 있어요.
+            </span>
+          </h1>
+          <p className="animate-fade-up max-w-md text-sm text-gray-500 sm:text-base">
+            어려운 지표 6가지를 계산해서 점수 하나, 신호등 하나로 떠먹여
+            드려요. 판단은 당신이, 근거는 저희가.
           </p>
 
-          <div className="mt-6 rounded-2xl border border-emerald-200 bg-white p-6 shadow-sm">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-xl font-semibold text-gray-900">
-                  삼성전자
-                </h3>
-                <p className="text-xs text-gray-500">005930 · 코스피</p>
-              </div>
-              <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-800">
-                🟢 안정
-              </span>
-            </div>
-
-            <div className="mt-6 text-center">
-              <p className="text-5xl font-bold tabular-nums text-gray-900">
-                68
-              </p>
-              <p className="text-xs text-gray-400">/ 100점</p>
-              <div className="mx-auto mt-3 h-3 w-full max-w-xs rounded-full bg-gray-100">
-                <div
-                  className="h-3 rounded-full bg-emerald-400"
-                  style={{ width: '68%' }}
-                />
-              </div>
-              <p className="mt-3 text-sm text-gray-600">
-                지금은 비교적 안정적이에요
-              </p>
-            </div>
-
-            <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
-              <IndicatorPreview
-                label="RSI"
-                value="62.3"
-                desc="과열도 침체도 아닌 적정 구간이에요."
-                tone="green"
-              />
-              <IndicatorPreview
-                label="PBR"
-                value="1.23배"
-                desc="자산 대비 크게 비싸지 않아요."
-                tone="green"
-              />
-            </div>
+          <div className="animate-fade-up relative z-20 w-full max-w-md">
+            <SearchBar autoFocus />
           </div>
+
+          <div className="animate-fade-up flex flex-wrap items-center justify-center gap-2">
+            <span className="text-xs text-gray-400">바로 보기</span>
+            {POPULAR_STOCKS.map((stock) => (
+              <StockChip key={stock.code} {...stock} />
+            ))}
+          </div>
+
+          {recent.length > 0 && (
+            <div className="flex flex-wrap items-center justify-center gap-2">
+              <span className="text-xs text-gray-400">최근 본 종목</span>
+              {recent.map((stock) => (
+                <StockChip key={stock.code} {...stock} />
+              ))}
+              <button
+                type="button"
+                onClick={clearRecent}
+                className="text-xs text-gray-400 underline-offset-2 hover:underline"
+              >
+                지우기
+              </button>
+            </div>
+          )}
         </div>
       </section>
 
-      <footer className="border-t border-gray-200 px-4 py-6 text-center text-xs text-gray-400">
-        <p>투자 판단은 직접 하세요. 스톡푸딩은 신호만 보여드려요.</p>
-        <p className="mt-1">© 2026 Stock Pudding</p>
-      </footer>
+      {/* 3단계 */}
+      <section className="border-y border-gray-200 bg-white px-4 py-12">
+        <div className="mx-auto grid max-w-2xl grid-cols-1 gap-6 sm:grid-cols-3">
+          {STEPS.map(({ step, title, desc }) => (
+            <div key={step} className="flex gap-3 sm:flex-col">
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-sm font-bold text-indigo-600">
+                {step}
+              </span>
+              <div>
+                <h2 className="text-base font-semibold text-gray-900">
+                  {title}
+                </h2>
+                <p className="mt-1 text-sm leading-relaxed text-gray-500">
+                  {desc}
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* 특징 */}
+      <section className="px-4 py-12">
+        <div className="mx-auto grid max-w-2xl grid-cols-1 gap-4 sm:grid-cols-3">
+          {FEATURES.map(({ emoji, title, desc }) => (
+            <div
+              key={title}
+              className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm transition hover:shadow-md"
+            >
+              <div className="text-2xl">{emoji}</div>
+              <h2 className="mt-2 text-base font-semibold text-gray-900">
+                {title}
+              </h2>
+              <p className="mt-1 text-sm leading-relaxed text-gray-500">
+                {desc}
+              </p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* 예시 CTA */}
+      <section className="px-4 pb-14">
+        <div className="mx-auto max-w-2xl rounded-2xl bg-gradient-to-r from-indigo-500 to-violet-500 p-6 text-center text-white shadow-md sm:p-8">
+          <h2 className="text-lg font-semibold sm:text-xl">
+            백문이 불여일견 🍮
+          </h2>
+          <p className="mt-1 text-sm text-indigo-100">
+            국민주 삼성전자는 지금 어떤 상태인지 직접 확인해보세요.
+          </p>
+          <Link
+            to="/stock/005930"
+            className="mt-4 inline-block rounded-xl bg-white px-5 py-2.5 text-sm font-semibold text-indigo-600 shadow-sm transition hover:bg-indigo-50"
+          >
+            삼성전자 분석 보러가기 →
+          </Link>
+        </div>
+      </section>
     </div>
   )
 }

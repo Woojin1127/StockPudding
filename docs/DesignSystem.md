@@ -199,25 +199,28 @@ xl:   32px  (gap-8, p-8)   — 페이지 여백
 구조:
   ┌─────────────────────────────────┐
   │  종목명 (Heading 1)  [신호 배지] │
-  │  코드 · 시장                     │
+  │  코드 · 현재가 · 기준일          │
   │                                 │
-  │      [점수 게이지 바]            │
+  │      [반원형 점수 게이지]        │
   │         68 / 100                │
   │    "지금은 비교적 안정적이에요"   │
   └─────────────────────────────────┘
 
 스타일:
-  - 카드: bg-white rounded-2xl border p-6 shadow-sm
+  - 카드: bg-white rounded-2xl border p-6 shadow-sm (테두리는 신호등 연한 색 §2.3)
   - 신호 배지: 신호등 색상 적용 (§2.3)
-  - 점수 숫자: text-5xl font-bold (Display)
-  - 게이지 바: h-3 rounded-full bg-gray-100, 내부 filled bar 신호등 색상
-  - 한줄 진단: text-sm text-gray-600 mt-2
+  - 점수 숫자: text-5xl font-bold tabular-nums (게이지 중앙)
+  - 게이지: 반원형 SVG (ScoreGauge 컴포넌트). 트랙 stroke-gray-100,
+    채움은 신호등 색. 마운트 시 0→점수 애니메이션 (1s ease-out)
+    ※ 2026-07-06 변경: 수평 바 → 반원 게이지. "계기판" 메타포가 신호등 판정과
+      더 잘 어울리고 점수가 시각적으로 한눈에 들어옴
+  - 판정 문구: text-base font-semibold + 신호등 텍스트 색
 ```
 
-**게이지 바 채움 색상:**
-- 65+: bg-emerald-400
-- 45~64: bg-amber-400
-- ~44: bg-red-400
+**게이지 채움 색상:**
+- 65+: emerald-400
+- 45~64: amber-400
+- ~44: red-400
 
 ### 5.3 신호 배지 (SignalBadge)
 

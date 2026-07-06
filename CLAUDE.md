@@ -33,7 +33,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `pnpm dev`: 개발 서버 시작 (Vite, 포트 5173)
 - `pnpm build`: 프로덕션 빌드 (`tsc` 타입 체크 후 `vite build`)
 - `pnpm preview`: 빌드 결과물 로컬 미리보기
-- `pnpm lint`: ESLint 검사
+- `pnpm lint`: oxlint 검사
 - `pnpm format`: Prettier 포맷팅
 - `pnpm test`: Vitest 실행
 - 배포: {프론트 미정 — Vercel 또는 Netlify 예정 / 엔진은 별도 호스팅 필요}
@@ -122,4 +122,5 @@ MVP에서 사용하는 지표 6종:
 - 기능 단위 스펙·구현 상태는 @docs/FeatureSpec.md 참고
 - UI 디자인 가이드는 @docs/DesignSystem.md 참고
 - 진행 상황·데이터 소스·엔진 구조는 @docs/PROGRESS.md 참고
+- Supabase 프로젝트 연결 방법은 docs/SupabaseSetup.md 참고 (스키마: supabase/schema.sql)
 - 사용 가능한 스크립트는 @package.json 참고 (프론트 셋업 후 생성됨)
