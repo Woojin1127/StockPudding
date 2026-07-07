@@ -11,7 +11,7 @@ export interface PatchNote {
 /** 최신이 앞으로 */
 export const PATCH_NOTES: PatchNote[] = [
   {
-    version: 'web 2',
+    version: 'v2.0.0',
     date: '2026-07-08',
     emoji: '📈',
     title: '차트가 생겼어요',
@@ -24,7 +24,7 @@ export const PATCH_NOTES: PatchNote[] = [
     ],
   },
   {
-    version: 'web 1',
+    version: 'v1.0.0',
     date: '2026-07-06',
     emoji: '🍮',
     title: '스톡푸딩 첫 공개',

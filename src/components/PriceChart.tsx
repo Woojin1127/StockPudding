@@ -73,7 +73,13 @@ export function PriceChart({ series }: { series: ChartSeries }) {
         horzLines: { color: '#F3F4F6' },
       },
       rightPriceScale: { borderColor: '#E5E7EB' },
-      timeScale: { borderColor: '#E5E7EB' },
+      timeScale: {
+        borderColor: '#E5E7EB',
+        // 팬/줌이 데이터 범위 밖(빈 공간)으로 못 나가게 양끝 고정
+        fixLeftEdge: true,
+        fixRightEdge: true,
+        lockVisibleTimeRangeOnResize: true,
+      },
       crosshair: { horzLine: { labelBackgroundColor: '#6366F1' }, vertLine: { labelBackgroundColor: '#6366F1' } },
       localization: {
         priceFormatter: (p: number) => p.toLocaleString('ko-KR'),
