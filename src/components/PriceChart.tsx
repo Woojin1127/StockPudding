@@ -16,6 +16,15 @@ interface Toggles {
   rsi: boolean
 }
 
+type RangeKey = '3M' | '1Y' | '3Y'
+
+/** 기간 -> 영업일 수 (3Y는 전체 fit) */
+const RANGES: { key: RangeKey; label: string; days: number }[] = [
+  { key: '3M', label: '3달', days: 63 },
+  { key: '1Y', label: '1년', days: 250 },
+  { key: '3Y', label: '3년', days: 760 },
+]
+
 const MA_STYLE = [
   { key: 'ma20', label: '20일', color: '#F59E0B' },
   { key: 'ma60', label: '60일', color: '#0EA5E9' },
@@ -45,6 +54,7 @@ export function PriceChart({ series }: { series: ChartSeries }) {
     volume: true,
     rsi: false,
   })
+  const [range, setRange] = useState<RangeKey>('1Y')
 
   useEffect(() => {
     const el = containerRef.current
@@ -128,18 +138,31 @@ export function PriceChart({ series }: { series: ChartSeries }) {
       chart.panes()[rsiPane]?.setHeight(90)
     }
 
-    // autoSize가 실제 컨테이너 폭을 잡은 뒤에 fit해야 전체 기간이 화면에 맞는다
-    chart.timeScale().fitContent()
+    const applyRange = () => {
+      const { days } = RANGES.find((r) => r.key === range)!
+      const last = series.dates.length - 1
+      if (days >= series.dates.length) {
+        chart.timeScale().fitContent()
+      } else {
+        chart.timeScale().setVisibleRange({
+          from: toTime(series.dates[last - days + 1]!),
+          to: toTime(series.dates[last]!),
+        })
+      }
+    }
+
+    // autoSize가 실제 컨테이너 폭을 잡은 뒤에 적용해야 기간이 화면에 맞는다
+    applyRange()
     let raf2 = 0
     const raf1 = requestAnimationFrame(() => {
-      raf2 = requestAnimationFrame(() => chart.timeScale().fitContent())
+      raf2 = requestAnimationFrame(applyRange)
     })
     return () => {
       cancelAnimationFrame(raf1)
       cancelAnimationFrame(raf2)
       chart.remove()
     }
-  }, [series, toggles])
+  }, [series, toggles, range])
 
   const heightClass = {
     ff: 'h-72',
@@ -159,7 +182,7 @@ export function PriceChart({ series }: { series: ChartSeries }) {
     <section className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm sm:p-5">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h2 className="text-xs font-semibold tracking-wide text-gray-400 uppercase">
-          최근 1년 가격 흐름
+          가격 흐름
         </h2>
         <div className="flex gap-1.5">
           <button
@@ -189,24 +212,43 @@ export function PriceChart({ series }: { series: ChartSeries }) {
         </div>
       </div>
 
-      {toggles.ma && (
-        <div className="mt-2 flex gap-3">
-          {MA_STYLE.map(({ key, label, color }) => (
-            <span key={key} className="flex items-center gap-1 text-xs text-gray-500">
-              <span
-                className={`h-0.5 w-4 rounded ${
-                  color === '#F59E0B'
-                    ? 'bg-amber-500'
-                    : color === '#0EA5E9'
-                      ? 'bg-sky-500'
-                      : 'bg-violet-500'
-                }`}
-              />
+      <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
+        <div className="flex overflow-hidden rounded-lg border border-gray-200">
+          {RANGES.map(({ key, label }) => (
+            <button
+              key={key}
+              type="button"
+              aria-pressed={range === key}
+              onClick={() => setRange(key)}
+              className={`px-2.5 py-1 text-xs font-medium transition ${
+                range === key
+                  ? 'bg-indigo-500 text-white'
+                  : 'bg-white text-gray-500 hover:bg-gray-50'
+              }`}
+            >
               {label}
-            </span>
+            </button>
           ))}
         </div>
-      )}
+        {toggles.ma && (
+          <div className="flex gap-3">
+            {MA_STYLE.map(({ key, label, color }) => (
+              <span key={key} className="flex items-center gap-1 text-xs text-gray-500">
+                <span
+                  className={`h-0.5 w-4 rounded ${
+                    color === '#F59E0B'
+                      ? 'bg-amber-500'
+                      : color === '#0EA5E9'
+                        ? 'bg-sky-500'
+                        : 'bg-violet-500'
+                  }`}
+                />
+                {label}
+              </span>
+            ))}
+          </div>
+        )}
+      </div>
 
       <div ref={containerRef} className={`mt-3 w-full ${heightClass}`} />
       <p className="mt-2 text-right text-xs text-gray-400">

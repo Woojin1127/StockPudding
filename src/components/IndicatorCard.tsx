@@ -1,14 +1,12 @@
-import { useState } from 'react'
-
 import type { IndicatorCardData } from '@/types/stock'
 import { INDICATOR_HELP } from '@/utils/indicatorHelp'
 import { SIGNAL_META } from '@/utils/signal'
 
-/** 지표 카드 (DesignSystem.md §5.4) + "이게 뭐예요?" 쉬운 설명 토글 (v2) */
+/** 지표 카드 (DesignSystem.md §5.4)
+ *  "?"는 호버/포커스 툴팁 — 카드 높이가 안 변해 그리드 옆 카드가 밀리지 않는다 */
 export function IndicatorCard({ card }: { card: IndicatorCardData }) {
   const meta = SIGNAL_META[card.signal]
   const help = INDICATOR_HELP[card.key]
-  const [showHelp, setShowHelp] = useState(false)
 
   return (
     <div
@@ -19,15 +17,21 @@ export function IndicatorCard({ card }: { card: IndicatorCardData }) {
           <span className={`h-2 w-2 shrink-0 rounded-full ${meta.dot}`} />
           {card.label}
           {help && (
-            <button
-              type="button"
-              onClick={() => setShowHelp((v) => !v)}
-              aria-label={`${card.label} 설명 보기`}
-              aria-expanded={showHelp}
-              className="rounded-full bg-gray-100 px-1.5 py-0.5 text-xs text-gray-400 transition hover:bg-indigo-50 hover:text-indigo-500"
-            >
-              ?
-            </button>
+            <span className="relative">
+              <button
+                type="button"
+                aria-label={`${card.label} 설명`}
+                className="peer rounded-full bg-gray-100 px-1.5 py-0.5 text-xs text-gray-400 transition hover:bg-indigo-50 hover:text-indigo-500"
+              >
+                ?
+              </button>
+              <span
+                role="tooltip"
+                className="pointer-events-none absolute top-full left-0 z-10 mt-1.5 hidden w-64 rounded-lg bg-gray-900/95 p-3 text-xs leading-relaxed font-normal tracking-normal normal-case text-gray-100 shadow-lg peer-hover:block peer-focus:block"
+              >
+                {help}
+              </span>
+            </span>
           )}
         </span>
         <span
@@ -39,11 +43,6 @@ export function IndicatorCard({ card }: { card: IndicatorCardData }) {
       <p className="mt-2 text-sm leading-relaxed text-gray-600">
         {card.comment}
       </p>
-      {showHelp && help && (
-        <p className="mt-2 rounded-lg bg-indigo-50/60 p-3 text-xs leading-relaxed text-gray-600">
-          {help}
-        </p>
-      )}
     </div>
   )
 }

@@ -10,7 +10,7 @@ export function Layout() {
   return (
     <div className="flex min-h-screen flex-col bg-gray-50">
       <header className="sticky top-0 z-30 border-b border-gray-200/70 bg-gray-50/80 backdrop-blur">
-        <div className="mx-auto flex max-w-2xl items-center gap-4 px-4 py-3">
+        <div className="mx-auto flex max-w-2xl items-center gap-3 px-4 py-3">
           <Link
             to="/"
             className="shrink-0 text-lg font-bold text-gray-900 transition hover:opacity-80"
@@ -22,6 +22,14 @@ export function Layout() {
               <SearchBar variant="compact" />
             </div>
           )}
+          <Link
+            to="/patches"
+            className={`shrink-0 text-sm font-medium text-gray-500 transition hover:text-indigo-600 ${
+              isHome ? 'ml-auto' : ''
+            }`}
+          >
+            📋 <span className="hidden sm:inline">패치노트</span>
+          </Link>
         </div>
       </header>
 

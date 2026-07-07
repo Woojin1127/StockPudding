@@ -9,7 +9,7 @@ import requests
 _NAVER_H = {"User-Agent": "Mozilla/5.0", "Referer": "https://m.stock.naver.com/"}
 
 
-def get_ohlcv(code: str, days: int = 420):
+def get_ohlcv(code: str, days: int = 1150):  # 약 3년 (차트용) — 지표 계산은 tail()이라 영향 없음
     """pykrx로 일봉 OHLCV(시가/고가/저가/종가/거래량) DataFrame 반환."""
     from pykrx import stock
     today = datetime.now()

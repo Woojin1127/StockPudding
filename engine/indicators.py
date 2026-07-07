@@ -124,8 +124,8 @@ def rsi_series(closes, period: int = 14):
     return (100 - 100 / (1 + rs)).round(1)
 
 
-def chart_series(df, days: int = 250) -> dict:
-    """최근 days 영업일의 종가/거래량/이평선/RSI 시계열. NaN은 None으로."""
+def chart_series(df, days: int = 760) -> dict:
+    """최근 days 영업일(약 3년)의 종가/거래량/이평선/RSI 시계열. NaN은 None으로."""
     closes = df["종가"]
     ma = {n: closes.rolling(n).mean().round(0) for n in (20, 60, 120)}
     rsi_s = rsi_series(closes)
