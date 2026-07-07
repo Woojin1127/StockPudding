@@ -32,6 +32,15 @@ def search(q: str):
     return {"query": q, "results": data.search_stocks(q)}
 
 
+@app.get("/market/movers")
+def market_movers():
+    """급등/급락/거래대금 TOP5 (최근 거래일 종가 기준, 10분 캐시)."""
+    try:
+        return data.get_movers()
+    except Exception as e:
+        raise HTTPException(status_code=502, detail=f"시장 데이터 조회 실패: {e}")
+
+
 @app.get("/analyze/{code}")
 def analyze(code: str):
     """종목 분석 결과(점수/신호등/지표카드/진단)."""

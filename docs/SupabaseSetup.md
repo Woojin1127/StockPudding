@@ -28,6 +28,12 @@ VITE_SUPABASE_ANON_KEY=eyJ...   ← "anon public" 키
 
 ⚠️ `service_role` 키는 절대 넣지 마세요. `VITE_` 변수는 빌드 결과물에 그대로 노출됩니다.
 
+## 업데이트 마이그레이션
+
+- **v3 (2026-07-08)**: "오늘 많이 본 종목"용 `stock_views` 테이블 추가.
+  이미 스키마를 적용한 프로젝트라면 [`supabase/migration_v3.sql`](../supabase/migration_v3.sql)을 SQL Editor에서 1회 실행하세요.
+  (신규 설치는 `schema.sql`에 이미 포함)
+
 ## 동작 방식
 
 - **캐싱**: 프론트가 `reports`에서 같은 종목의 30분 내 리포트를 먼저 찾고, 없을 때만 엔진을 호출 후 저장 (`src/api/reports.ts`의 `CACHE_TTL_MINUTES`)

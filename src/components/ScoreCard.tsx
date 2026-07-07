@@ -1,3 +1,4 @@
+import { PuddingBadge } from '@/components/PuddingBadge'
 import { ScoreGauge } from '@/components/ScoreGauge'
 import { SignalBadge } from '@/components/SignalBadge'
 import type { AnalysisResult } from '@/types/stock'
@@ -27,6 +28,9 @@ export function ScoreCard({ result }: { result: AnalysisResult }) {
         <ScoreGauge score={result.score} light={result.light} />
         <p className={`mt-3 text-center text-base font-semibold ${meta.text}`}>
           {result.verdict}
+        </p>
+        <p className="mt-2 text-center">
+          <PuddingBadge light={result.light} />
         </p>
       </div>
     </section>

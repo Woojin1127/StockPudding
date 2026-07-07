@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { Navigate, useParams } from 'react-router-dom'
 
+import { recordView } from '@/api/community'
 import { AnalysisSkeleton, AnalysisView } from '@/components/AnalysisView'
 import { ErrorState } from '@/components/ErrorState'
 import { useReport } from '@/hooks/useReport'
@@ -15,6 +16,7 @@ export default function StockPage() {
   useEffect(() => {
     if (report) {
       addRecent({ code: report.result.code, name: report.result.name })
+      void recordView(report.result.code, report.result.name) // 오늘 많이 본 종목 집계용
     }
   }, [report, addRecent])
 

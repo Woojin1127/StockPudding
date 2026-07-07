@@ -40,3 +40,16 @@ export function formatRelativeTime(
 export function isStockCode(input: string): boolean {
   return /^\d{6}$/.test(input.trim())
 }
+
+/** 등락률 표시 — '+6.92%' / '-6.06%' / '0.00%' */
+export function formatChangePct(pct: number): string {
+  const sign = pct > 0 ? '+' : ''
+  return `${sign}${pct.toFixed(2)}%`
+}
+
+/** 거래대금(원) -> '1.4조' / '9,582억' */
+export function formatAmount(won: number): string {
+  const eok = won / 100_000_000
+  if (eok >= 10_000) return `${(eok / 10_000).toFixed(1)}조`
+  return `${Math.round(eok).toLocaleString('ko-KR')}억`
+}

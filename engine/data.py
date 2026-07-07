@@ -27,16 +27,55 @@ def get_name(code: str) -> str:
     return stock.get_market_ticker_name(code)
 
 
-_listing_cache = {"df": None}
+_listing_cache = {"df": None, "ts": 0.0}
+_LISTING_TTL = 600  # 10분 — 시세 스냅샷·종목 목록 겸용이라 주기 갱신
+
+
+def _load_listing():
+    """KRX 전종목 스냅샷 (FDR). 종가/등락률/거래대금/시총 포함, TTL 캐시."""
+    import time
+    now = time.time()
+    if _listing_cache["df"] is None or now - _listing_cache["ts"] > _LISTING_TTL:
+        import FinanceDataReader as fdr
+        _listing_cache["df"] = fdr.StockListing("KRX")
+        _listing_cache["ts"] = now
+    return _listing_cache["df"]
 
 
 def get_listing():
-    """KRX 전종목(코드/종목명/시장) DataFrame. 프로세스 내 1회 로드 후 캐시."""
-    if _listing_cache["df"] is None:
-        import FinanceDataReader as fdr
-        df = fdr.StockListing("KRX")[["Code", "Name", "Market"]]
-        _listing_cache["df"] = df
-    return _listing_cache["df"]
+    """검색용 (코드/종목명/시장)."""
+    return _load_listing()[["Code", "Name", "Market"]]
+
+
+def get_movers(top: int = 5) -> dict:
+    """급등/급락/거래대금 TOP — 최근 거래일 종가 스냅샷 기준.
+    잡주 도배 방지: 코스피·코스닥, 시총 1000억↑, 거래 있음, 스팩 제외."""
+    df = _load_listing()
+    base = df[
+        df["Market"].isin(["KOSPI", "KOSDAQ"])
+        & (df["Volume"] > 0)
+        & (df["Marcap"] >= 100_000_000_000)
+        & ~df["Name"].str.contains("스팩", na=False)
+    ]
+
+    def rows(d):
+        return [
+            {
+                "code": r.Code,
+                "name": r.Name,
+                "market": r.Market,
+                "price": int(r.Close),
+                "change_pct": round(float(r.ChagesRatio), 2),
+                "amount": int(r.Amount),
+            }
+            for r in d.itertuples()
+        ]
+
+    return {
+        "gainers": rows(base.sort_values("ChagesRatio", ascending=False).head(top)),
+        "losers": rows(base.sort_values("ChagesRatio").head(top)),
+        "most_traded": rows(base.sort_values("Amount", ascending=False).head(top)),
+    }
 
 
 def search_stocks(q: str, limit: int = 10):

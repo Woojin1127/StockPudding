@@ -18,8 +18,8 @@
 | F4 | 리포트 저장 | P0 | 코드 완료 · 프로젝트 연결 대기* | `src/api/reports.ts`, `supabase/schema.sql`, `/report/:id` |
 | F5 | 좋아요/싫어요 투표 | P0 | 코드 완료 · 프로젝트 연결 대기* | `src/api/votes.ts`, `src/hooks/useVotes.ts`, `src/components/VoteButtons.tsx` |
 | F6 | 분석 결과 캐싱 | P0 | 코드 완료 · 프로젝트 연결 대기* | `src/api/reports.ts` (TTL 30분) |
-| F7 | 인기 분석 랭킹 | P1 | 대기 | - |
-| F8 | 오늘 많이 본 종목 | P1 | 대기 | - |
+| F7 | 인기 분석 랭킹 | P1 | 완료 (좋아요 순 TOP5, 랜딩) | `src/api/community.ts fetchTopReports`, `MarketSections.tsx` |
+| F8 | 오늘 많이 본 종목 | P1 | 완료* (`migration_v3.sql` 실행 필요) | `stock_views` 테이블, `src/api/community.ts` |
 | F9 | 최근 검색 (로컬) | P1 | 완료 | `src/store/recentStocks.ts` (랜딩에 칩 노출, 최대 8개) |
 | F10 | 로그인 & 관심 종목 | P2 | 설계 전 | - |
 | F11 | 알림 | P2 | 설계 전 | - |
@@ -29,7 +29,9 @@
 | F15 | 기술 지표 확장 (6종+요약) | v2 | 완료 | `engine/indicators.py`, `scoring.py`, `src/components/TechnicalSection.tsx` |
 | F16 | 시나리오 진단 사전 | v2 | 완료 | `engine/scoring.py _diagnose_scenario` (17개 시나리오 + 폴백) |
 | F17 | 지표 용어 도움말 | v2 | 완료 (핵심 6종은 호버 툴팁, 기술 지표는 토글) | `src/utils/indicatorHelp.ts` |
-| F18 | 패치노트 | v2 | 완료 | `src/pages/PatchNotesPage.tsx`, `src/data/patchNotes.ts`, 헤더 링크 |
+| F18 | 패치노트 | v2 | 완료 (semver 표기) | `src/pages/PatchNotesPage.tsx`, `src/data/patchNotes.ts`, 헤더 링크 |
+| F19 | 오늘의 급등락 / 거래대금 TOP | v3 | 완료 | 엔진 `GET /market/movers` (FDR 스냅샷, 10분 캐시), `MarketSections.tsx` |
+| F20 | 오늘의 푸딩 (점수 브랜딩) | v3 | 완료 | `src/components/PuddingBadge.tsx` (탱글탱글/흔들흔들/와르르) |
 
 \* F4~F6: 프론트 코드·SQL 스키마·미설정 폴백까지 구현 완료. **실제 Supabase 프로젝트 생성 + `.env` 키 입력만 남음** — [SupabaseSetup.md](SupabaseSetup.md)의 5분 셋업 참고. 미설정 상태에서는 엔진 직접 호출 + 투표 로컬 저장으로 자동 폴백되어 앱은 정상 동작.
 

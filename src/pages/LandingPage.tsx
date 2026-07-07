@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 
+import { MarketSections } from '@/components/MarketSections'
 import { SearchBar } from '@/components/SearchBar'
 import { useRecentStocks } from '@/store/recentStocks'
 
@@ -115,6 +116,9 @@ export default function LandingPage() {
           )}
         </div>
       </section>
+
+      {/* 시장 & 커뮤니티 콘텐츠 (v3) */}
+      <MarketSections />
 
       {/* 3단계 */}
       <section className="border-y border-gray-200 bg-white px-4 py-12">
