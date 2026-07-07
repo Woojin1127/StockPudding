@@ -41,8 +41,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ### Python 엔진 (별도 프로세스, `engine/` 폴더)
 
 - 실행: `engine`에서 `python -m uvicorn main:app --port 8000`
+  - 이 PC는 Python이 PATH에 없음 → `C:\Users\Woojin\AppData\Local\Programs\Python\Python312\python.exe`로 실행
 - 의존성: `engine/requirements.txt` (pykrx, finance-datareader, requests, fastapi, uvicorn)
-- 프론트 개발 시 엔진도 같이 띄워야 검색·분석이 동작함
+- 프론트 개발 시 엔진도 같이 띄워야 검색·분석이 동작함 (총 터미널 2개 — 상세는 README.md 실행 섹션)
 
 ## 아키텍처
 

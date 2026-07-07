@@ -23,18 +23,27 @@
 
 ## 실행
 
-```bash
-# 1) 분석 엔진 (engine/ 폴더에서)
-pip install -r requirements.txt
-python -m uvicorn main:app --port 8000
+**터미널 2개**가 필요합니다 — ① Python 엔진, ② 프론트 dev 서버. (Supabase는 클라우드라 띄울 것 없음)
 
-# 2) 프론트 (루트에서)
-pnpm install
-pnpm dev          # http://localhost:5173
+```bash
+# ── 터미널 1: 분석 엔진 ──
+cd engine
+python -m uvicorn main:app --port 8000
+# 이 PC(Woojin)는 Python이 PATH에 없어서 절대경로로:
+# C:\Users\Woojin\AppData\Local\Programs\Python\Python312\python.exe -m uvicorn main:app --port 8000
+# 처음이라면 먼저: pip install -r requirements.txt
+
+# ── 터미널 2: 프론트 ──
+pnpm install      # 처음 1회
+pnpm dev          # → 브라우저에서 http://localhost:5173
 ```
 
-Supabase(리포트 저장·투표·캐싱)는 선택입니다 — 미설정이어도 검색·분석은 동작해요.
-연결 방법은 [docs/SupabaseSetup.md](docs/SupabaseSetup.md) 참고.
+체크리스트:
+1. 엔진 확인: http://localhost:8000/health 가 `{"ok":true}` 이면 성공
+2. 프론트는 엔진이 떠 있어야 검색·분석이 동작함 (엔진 없이 켜면 검색 시 에러)
+3. `.env`에 Supabase URL/키가 있으면 저장·투표·캐싱까지 동작 — 없어도 검색·분석은 OK
+   - ⚠️ `VITE_SUPABASE_URL`은 **베이스 URL만** (`https://xxxx.supabase.co`) — 뒤에 `/rest/v1/` 붙이면 안 됨
+   - 셋업 방법: [docs/SupabaseSetup.md](docs/SupabaseSetup.md)
 
 ## 스크립트
 
