@@ -49,24 +49,26 @@ def score_drop(drop_pct):
 
 
 def score_ma(ma_info, current_price):
+    # 값은 짧은 상태 텍스트로, 어느 선 위/아래인지는 설명에서 풀어준다 (DesignSystem §5.4)
     key, label = "ma", "이동평균선 대비 현재가"
+    names = {"gap20": "20일", "gap60": "60일", "gap120": "120일"}
     gaps = [g for g in ("gap20", "gap60", "gap120") if g in ma_info]
-    above = sum(1 for g in gaps if ma_info[g] > 0)
+    above = [names[g] for g in gaps if ma_info[g] > 0]
+    below = [names[g] for g in gaps if ma_info[g] <= 0]
     total = len(gaps)
-    val = " / ".join(f"{g[3:]}일 {ma_info[g]:+.1f}%" for g in gaps)
     if total == 0:
         return _card(key, label, "-", 50, "neutral", "이평선 계산에 필요한 데이터가 부족해요.")
-    ratio = above / total
+    ratio = len(above) / total
     if ratio == 1:
-        return _card(key, label, val, 80, "good",
-                     "현재가가 단기·중기·장기 이평선을 모두 위에 있어요. 상승 흐름이에요.")
+        return _card(key, label, "모두 위", 80, "good",
+                     "현재가가 단기·중기·장기 이평선을 모두 웃돌아요. 상승 흐름이에요.")
     if ratio >= 0.5:
-        return _card(key, label, val, 60, "neutral",
-                     "이평선 위아래에 걸쳐 있어요. 방향을 잡아가는 중이에요.")
+        return _card(key, label, f"{'·'.join(above)}선 위", 60, "neutral",
+                     f"{'·'.join(above)}선 위, {'·'.join(below)}선 아래예요. 방향을 잡아가는 중이에요.")
     if ratio > 0:
-        return _card(key, label, val, 45, "neutral",
-                     "대부분의 이평선 아래에 있어요. 힘이 약한 편이에요.")
-    return _card(key, label, val, 30, "bad",
+        return _card(key, label, f"{'·'.join(above)}선만 위", 45, "neutral",
+                     f"{'·'.join(below)}선 아래에 있어요. 힘이 약한 편이에요.")
+    return _card(key, label, "모두 아래", 30, "bad",
                  "모든 이평선 아래에 있어요. 하락 흐름이에요.")
 
 
@@ -153,10 +155,10 @@ def _diagnose(cards, light):
     head = {"green": "전반적으로 무난해요.",
             "yellow": "나쁘지 않지만 신경 쓸 부분이 있어요.",
             "red": "지금은 위험 신호가 보여요."}[light]
+    # 면책 문구는 화면 공통 푸터가 담당 — 진단 텍스트에서 반복하지 않는다
     parts = [head]
     if bad:
         parts.append("특히 " + ", ".join(c["label"].split(" (")[0] for c in bad) + " 쪽이 약해요.")
     elif good:
         parts.append(", ".join(c["label"].split(" (")[0] for c in good) + " 는 괜찮아요.")
-    parts.append("참고용 지표일 뿐, 투자 판단은 직접 하세요.")
     return " ".join(parts)
