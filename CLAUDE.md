@@ -123,5 +123,6 @@ MVP에서 사용하는 지표 6종:
 - 기능 단위 스펙·구현 상태는 @docs/FeatureSpec.md 참고
 - UI 디자인 가이드는 @docs/DesignSystem.md 참고
 - 진행 상황·데이터 소스·엔진 구조는 @docs/PROGRESS.md 참고
+- v2(차트·기술지표·시나리오 진단) 계획·원칙은 docs/V2_Plan.md 참고
 - Supabase 프로젝트 연결 방법은 docs/SupabaseSetup.md 참고 (스키마: supabase/schema.sql)
 - 사용 가능한 스크립트는 @package.json 참고 (프론트 셋업 후 생성됨)

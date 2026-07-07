@@ -26,7 +26,27 @@ export interface SignalSummaryItem {
   text: string
 }
 
-/** GET /analyze/{code} 응답 (engine/analyze.py) */
+/** 차트용 시계열 (v2) — 최근 250영업일, 워밍업 구간은 null */
+export interface ChartSeries {
+  dates: string[]
+  close: number[]
+  volume: number[]
+  ma20: (number | null)[]
+  ma60: (number | null)[]
+  ma120: (number | null)[]
+  rsi: (number | null)[]
+}
+
+/** 기술 지표 신호 집계 (v2) */
+export interface TechSummary {
+  good: number
+  neutral: number
+  bad: number
+  verdict: string
+}
+
+/** GET /analyze/{code} 응답 (engine/analyze.py)
+ *  v2 필드(series/technicals/tech_summary)는 v1 시절 캐시된 리포트에 없을 수 있어 optional */
 export interface AnalysisResult {
   code: string
   name: string
@@ -38,6 +58,9 @@ export interface AnalysisResult {
   diagnosis: string
   signals: SignalSummaryItem[]
   cards: IndicatorCardData[]
+  technicals?: IndicatorCardData[]
+  tech_summary?: TechSummary
+  series?: ChartSeries
 }
 
 /** 분석 결과 + 저장 메타. Supabase 미설정 시 reportId는 null. */

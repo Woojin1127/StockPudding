@@ -12,7 +12,7 @@ import scoring as sc
 def analyze_stock(code: str) -> dict:
     name = data.get_name(code)
     df = data.get_ohlcv(code)
-    closes, highs, volumes = df["종가"], df["고가"], df["거래량"]
+    closes, highs, lows, volumes = df["종가"], df["고가"], df["저가"], df["거래량"]
     current = int(closes.iloc[-1])
     fund = data.get_fundamentals(code)
 
@@ -31,7 +31,29 @@ def analyze_stock(code: str) -> dict:
     ]
     cards += [c for c in (sc.score_pbr(fund["pbr"]), sc.score_debt(fund["debt_ratio"])) if c]
 
-    result = sc.composite(cards)
+    # 시나리오 진단용 원값 컨텍스트
+    gaps = [g for g in ("gap20", "gap60", "gap120") if g in ma]
+    above = (sum(1 for g in gaps if ma[g] > 0) / len(gaps)) if gaps else None
+    ctx = {
+        "rsi": rsi_val,
+        "drop": drop["drop_pct"],
+        "above": above,
+        "vol": vol["ratio"],
+        "pbr": fund["pbr"],
+        "debt": fund["debt_ratio"],
+    }
+
+    # v2: 기술적 지표 확장 (보조 섹션 — 종합점수 미반영)
+    technicals = [
+        sc.score_macd(ind.macd(closes)),
+        sc.score_stochastic(ind.stochastic(highs, lows, closes)),
+        sc.score_williams(ind.williams_r(highs, lows, closes)),
+        sc.score_roc(ind.roc(closes)),
+        sc.score_bollinger(ind.bollinger_pct_b(closes)),
+        sc.score_atr(ind.atr_pct(highs, lows, closes)),
+    ]
+
+    result = sc.composite(cards, ctx)
     return {
         "code": code,
         "name": name,
@@ -43,6 +65,9 @@ def analyze_stock(code: str) -> dict:
         "diagnosis": result["diagnosis"],
         "signals": result["signals"],
         "cards": cards,
+        "technicals": technicals,
+        "tech_summary": sc.tech_summary(technicals),
+        "series": ind.chart_series(df),
     }
 
 

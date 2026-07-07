@@ -115,8 +115,9 @@ def score_debt(debt_ratio):
                  "빚이 자본의 2배 이상이에요. 재무 부담이 큰 편이에요.")
 
 
-def composite(cards):
-    """카드 리스트 -> 종합점수(0~100) + 신호등 + 한줄 진단."""
+def composite(cards, ctx=None):
+    """카드 리스트 -> 종합점수(0~100) + 신호등 + 한줄 진단.
+    ctx(지표 원값 dict)가 있으면 시나리오 사전 기반 진단을 우선 시도한다."""
     num = den = 0.0
     for c in cards:
         w = WEIGHTS.get(c["key"], 0)
@@ -131,10 +132,73 @@ def composite(cards):
     else:
         light, verdict = "red", "지금은 조심할 때예요"
 
-    diagnosis = _diagnose(cards, light)
+    diagnosis = (_diagnose_scenario(ctx) if ctx else None) or _diagnose(cards, light)
     signals = _signal_summary(cards)
     return {"score": total, "light": light, "verdict": verdict,
             "diagnosis": diagnosis, "signals": signals}
+
+
+def _diagnose_scenario(ctx):
+    """지표 조합 시나리오 사전 — 종목 상태에 따라 다른 이야기를 들려준다.
+    위에서부터 첫 매칭이 선택된다(구체적 조합 -> 단일 지표 순). 매칭 없으면 None.
+    수치를 문장에 박아 같은 시나리오라도 종목마다 다르게 읽히게 한다."""
+    rsi = ctx.get("rsi")
+    drop = ctx.get("drop")          # 음수 (예: -49.2)
+    above = ctx.get("above")        # 이평선 위 비율 0~1, 계산불가면 None
+    vol = ctx.get("vol")            # 평균 대비 배수
+    pbr = ctx.get("pbr")
+    debt = ctx.get("debt")
+    fall = abs(drop) if drop is not None else None
+
+    if above == 1 and rsi >= 70:
+        return (f"모든 이평선 위에서 RSI {rsi}까지 달아올랐어요. 추세는 강하지만 "
+                f"단기 과열권이라, 잠깐 쉬어가는 조정이 나와도 이상하지 않은 자리예요.")
+    if above == 1 and vol >= 2:
+        return (f"상승 흐름(이평선 전부 위)에 거래량까지 평소의 {vol}배로 붙었어요. "
+                f"시장의 시선이 모여 있는 종목이에요.")
+    if above == 1 and drop >= -5:
+        return (f"52주 고점 코앞({drop}%)에 모든 이평선 위 — 전형적인 신고가 도전 "
+                f"구간이에요. 여기서 뚫리느냐 막히느냐로 분위기가 갈려요.")
+    if above == 1:
+        return ("단기·중기·장기 이평선을 모두 웃도는 정배열 흐름이에요. 추세 자체는 "
+                "건강한 편이지만, 이미 오른 가격이라는 점도 함께 봐야 해요.")
+    if above == 0 and debt is not None and debt >= 200:
+        return (f"주가는 모든 이평선 아래, 부채비율은 {debt}% — 추세와 재무가 동시에 "
+                f"무거운 상태예요. 위험 신호가 겹쳐 있어요.")
+    if above == 0 and rsi <= 30 and vol >= 1.5:
+        return (f"깊은 침체(RSI {rsi}) 속에 거래량이 평소의 {vol}배로 늘었어요. "
+                f"바닥권에서 손바뀜이 일어나는 중일 수 있어, 방향이 정해지는 길목이에요.")
+    if above == 0 and rsi <= 30:
+        return (f"모든 이평선 아래 + RSI {rsi} — 아직 파는 힘이 우세해요. 많이 "
+                f"빠졌다는 것과 바닥이라는 건 다른 얘기라, 반등 신호가 나오는지가 관건이에요.")
+    if above == 0 and pbr is not None and pbr < 1:
+        return (f"주가는 하락 흐름인데 PBR {pbr}배로 순자산보다 싸요. '싼 데는 이유가 "
+                f"있다'와 '기회'가 갈리는 자리 — 왜 싸졌는지가 핵심이에요.")
+    if above == 0:
+        return (f"모든 이평선 아래로 내려온 하락 흐름이에요. 고점 대비 {fall}% 빠진 "
+                f"상태라 지표 대부분이 무겁게 나와요.")
+    if drop <= -40 and vol >= 1.5:
+        return (f"고점 대비 {fall}%나 빠진 자리에 거래량이 평소의 {vol}배 — 크게 "
+                f"눌린 종목에 관심이 다시 붙는 모습이에요.")
+    if drop <= -40:
+        return (f"52주 고점에서 {fall}% 내려왔어요. 가격은 확실히 낮아졌지만, 하락이 "
+                f"깊었던 만큼 회복에도 시간이 필요한 유형이에요.")
+    if drop >= -5 and rsi >= 65:
+        return (f"52주 고점 근처({drop}%)에 RSI {rsi} — 열기가 있는 구간이에요. "
+                f"고점 돌파 기대와 고점 부담이 맞붙는 자리예요.")
+    if pbr is not None and debt is not None and pbr < 1 and debt < 100:
+        return (f"PBR {pbr}배에 부채비율 {debt}% — 자산보다 싸게 거래되면서 재무도 "
+                f"탄탄한 조합이에요. 화려하진 않지만 기본기가 좋은 유형이에요.")
+    if debt is not None and debt >= 200:
+        return (f"부채비율이 {debt}%로 자본의 두 배가 넘어요. 다른 지표가 나쁘지 "
+                f"않아도 이 무게는 계속 따라다니는 리스크예요.")
+    if vol >= 2.5:
+        return (f"거래량이 평소의 {vol}배로 튀었어요. 가격보다 거래량이 먼저 "
+                f"움직였다는 건 무언가 재료가 있다는 신호일 때가 많아요.")
+    if rsi >= 70:
+        return (f"RSI {rsi} — 단기 과열권이에요. 다만 이평선 배열은 엇갈려 있어서 "
+                f"힘이 온전히 실린 상승은 아직 아니에요.")
+    return None
 
 
 def _signal_summary(cards):
@@ -149,16 +213,108 @@ def _signal_summary(cards):
 
 
 def _diagnose(cards, light):
-    """규칙기반 한줄 진단 — 나쁜 신호 우선으로 엮는다."""
+    """폴백 진단 — 시나리오 미매칭 시. 최고/최저 지표를 수치와 함께 엮는다."""
+    # 면책 문구는 화면 공통 푸터가 담당 — 진단 텍스트에서 반복하지 않는다
     bad = [c for c in cards if c["signal"] == "bad"]
     good = [c for c in cards if c["signal"] == "good"]
-    head = {"green": "전반적으로 무난해요.",
-            "yellow": "나쁘지 않지만 신경 쓸 부분이 있어요.",
-            "red": "지금은 위험 신호가 보여요."}[light]
-    # 면책 문구는 화면 공통 푸터가 담당 — 진단 텍스트에서 반복하지 않는다
-    parts = [head]
+
+    def short(c):
+        return f"{c['label'].split(' (')[0]}({c['value']})"
+
+    if good and bad:
+        best = max(good, key=lambda c: c["score"])
+        worst = min(bad, key=lambda c: c["score"])
+        return (f"지표들이 서로 다른 방향을 봐요. {short(best)}은 든든한데 "
+                f"{short(worst)}이 발목을 잡는 그림이에요.")
+    if good:
+        best = max(good, key=lambda c: c["score"])
+        return f"크게 튀는 위험 신호 없이 고른 편이에요. 특히 {short(best)}가 든든해요."
     if bad:
-        parts.append("특히 " + ", ".join(c["label"].split(" (")[0] for c in bad) + " 쪽이 약해요.")
-    elif good:
-        parts.append(", ".join(c["label"].split(" (")[0] for c in good) + " 는 괜찮아요.")
-    return " ".join(parts)
+        worst = min(bad, key=lambda c: c["score"])
+        return f"좋은 신호가 보이지 않는 구간이에요. {short(worst)}부터 무거워요."
+    return "모든 지표가 중간 지대예요. 방향을 정하지 못하고 힘을 모으는 구간이에요."
+
+
+# ── v2: 기술적 지표 확장 카드 (보조 섹션 — 종합점수에는 미반영) ──────
+
+
+def score_williams(wr):
+    key, label = "williams", "Williams %R"
+    val = f"{wr}"
+    if wr >= -20:
+        return _card(key, label, val, 40, "bad", "과매수권이에요. 단기적으로 뜨거운 상태예요.")
+    if wr <= -80:
+        return _card(key, label, val, 55, "neutral", "과매도권 — 최근 2주 기준 많이 눌려 있어요.")
+    return _card(key, label, val, 70, "good", "과열도 침체도 아닌 구간이에요.")
+
+
+def score_stochastic(st):
+    key, label = "stoch", "스토캐스틱"
+    val = f"K {st['k']} · D {st['d']}"
+    if st["k"] >= 80:
+        return _card(key, label, val, 40, "bad", "과매수권이에요. 단기 열기가 높아요.")
+    if st["k"] <= 20:
+        return _card(key, label, val, 55, "neutral", "과매도권 — 바닥권에서 눌려 있어요.")
+    if st["k"] > st["d"]:
+        return _card(key, label, val, 70, "good", "%K가 %D 위 — 단기 흐름이 위쪽을 향해요.")
+    return _card(key, label, val, 55, "neutral", "%K가 %D 아래 — 단기 흐름이 아래쪽이에요.")
+
+
+def score_macd(m):
+    key, label = "macd", "MACD"
+    val = f"히스토그램 {m['hist_pct']:+.2f}%"
+    if m["hist"] > 0 and m["macd"] > 0:
+        return _card(key, label, val, 75, "good", "상승 모멘텀이 살아 있어요.")
+    if m["hist"] > 0:
+        return _card(key, label, val, 65, "good", "하락에서 상승 쪽으로 힘이 기우는 중이에요.")
+    if m["macd"] < 0:
+        return _card(key, label, val, 35, "bad", "하락 모멘텀 구간이에요.")
+    return _card(key, label, val, 50, "neutral", "상승 힘이 식어가는 중이에요.")
+
+
+def score_roc(v):
+    key, label = "roc", "ROC (12일 등락)"
+    val = f"{v:+.1f}%"
+    if v >= 5:
+        return _card(key, label, val, 70, "good", "최근 12거래일 새 상승 탄력이 붙었어요.")
+    if v <= -5:
+        return _card(key, label, val, 40, "bad", "최근 12거래일 새 하락 탄력이 붙었어요.")
+    return _card(key, label, val, 60, "neutral", "최근 2주 남짓은 큰 방향 없이 보합이에요.")
+
+
+def score_atr(v):
+    key, label = "atr", "ATR (하루 변동폭)"
+    val = f"±{v}%"
+    if v <= 2:
+        return _card(key, label, val, 70, "good", "하루 출렁임이 작은 잔잔한 종목이에요.")
+    if v <= 5:
+        return _card(key, label, val, 60, "neutral", "보통 수준의 변동성이에요.")
+    return _card(key, label, val, 40, "bad", f"하루에도 평균 {v}%씩 출렁여요. 흔들림에 약하면 부담스러운 유형이에요.")
+
+
+def score_bollinger(b):
+    key, label = "bb", "볼린저밴드 위치"
+    val = f"%B {b}"
+    if b >= 1:
+        return _card(key, label, val, 40, "bad", "밴드 상단을 뚫었어요 — 통계적으로 과열 신호예요.")
+    if b >= 0.8:
+        return _card(key, label, val, 55, "neutral", "밴드 상단 근처예요. 열기가 있어요.")
+    if b < 0:
+        return _card(key, label, val, 40, "bad", "밴드 하단을 이탈했어요 — 하락 압력이 강해요.")
+    if b <= 0.2:
+        return _card(key, label, val, 55, "neutral", "밴드 하단 근처 — 눌려 있는 자리예요.")
+    return _card(key, label, val, 70, "good", "밴드 중간 — 통계적으로 안정적인 위치예요.")
+
+
+def tech_summary(techs):
+    """기술 지표 신호 집계 -> 한줄 요약 (매수/매도 아님 — 신호 우세만 말한다)."""
+    good = sum(1 for t in techs if t["signal"] == "good")
+    bad = sum(1 for t in techs if t["signal"] == "bad")
+    neutral = len(techs) - good - bad
+    if good >= bad + 2:
+        verdict = f"긍정 우세 — {len(techs)}개 중 {good}개가 좋은 신호예요"
+    elif bad >= good + 2:
+        verdict = f"부정 우세 — {len(techs)}개 중 {bad}개가 주의 신호예요"
+    else:
+        verdict = f"긍정 {good} · 부정 {bad}로 팽팽한 중립이에요"
+    return {"good": good, "neutral": neutral, "bad": bad, "verdict": verdict}
