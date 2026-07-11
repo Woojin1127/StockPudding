@@ -12,10 +12,10 @@ from analyze import analyze_stock
 
 app = FastAPI(title="Stock Pudding Engine", version="0.1")
 
-# 로컬 개발용: Vite dev 서버(React)에서 호출 허용
+# 로컬 개발(Vite) + 배포된 프론트(Vercel)에서 호출 허용
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
+    allow_origins=["http://localhost:5173", "https://stock-pudding.vercel.app"],
     allow_methods=["GET"],
     allow_headers=["*"],
 )
